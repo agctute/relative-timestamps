@@ -2,7 +2,7 @@
 	"id": "obsidian-relative-timestamps",
 	"name": "Relative Timestamps",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "0.10.0",
 	"description": "Track the exact time between log entries",
 	"author": "Obsidian",
 	"authorUrl": "https://obsidian.md",
