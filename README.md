@@ -1,5 +1,5 @@
 # Relative Timestamps Obsidian Plugin
-![Relative Timestamps](res/example.png)
+![Relative Timestamps](assets/example.png)
 **Note**: This plugin was made for personal use and is very barebones right now. Any contributions would be appreciated.
 
 Originally made for use in food logs, diaries, and other notes where it may be difficult to grasp the time span between two entries at a glance. For instance, without pausing to think, one might not immediately realize the significant gap between a 3 AM entry and a 6 PM entry. This plugin addresses this by automatically inserting the time that has passed between timestamps. 
