@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS: RtPluginSettings = {
 	includeCurrentTime: true
 }
 
-export default class MyPlugin extends Plugin {
+export default class RelativeTimestampsPlugin extends Plugin {
 	settings: RtPluginSettings;
 
 	async onload() {
@@ -23,7 +23,7 @@ export default class MyPlugin extends Plugin {
 			name: 'Reset timestamp',
 			callback: () => {
 				const now = new Date();
-				const stamp = moment(now).format('YYYYMMDDhhmmss');
+				const stamp = moment(now).format('YYYYMMDDHHmmss');
 				this.settings.lastTimeStamp = stamp;
 				this.saveSettings();
 				new Notice('New saved time: ' + stamp);
@@ -60,26 +60,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class RelTimeSettingTab extends PluginSettingTab {
+	plugin: RelativeTimestampsPlugin;
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: RelativeTimestampsPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
