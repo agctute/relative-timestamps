@@ -1,6 +1,5 @@
 import { App, Editor, MarkdownView, moment, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
-// Remember to rename these classes and interfaces!
 
 interface RtPluginSettings {
 	lastTimeStamp: string;
