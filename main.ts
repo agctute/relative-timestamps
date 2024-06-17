@@ -1,14 +1,16 @@
-import { App, Editor, MarkdownView, moment, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import {App, Editor, MarkdownView, moment, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 
 interface RtPluginSettings {
 	lastTimeStamp: string;
 	includeCurrentTime: boolean;
+	savePageTime: boolean;
 }
 
 const DEFAULT_SETTINGS: RtPluginSettings = {
 	lastTimeStamp: '2024-05-31-12-00-00',
-	includeCurrentTime: true
+	includeCurrentTime: true,
+	savePageTime: true
 }
 
 export default class RelativeTimestampsPlugin extends Plugin {
@@ -37,18 +39,66 @@ export default class RelativeTimestampsPlugin extends Plugin {
 				const last = moment(this.settings.lastTimeStamp,'YYYYMMDDHHmmss')
 				const stamp = moment(now);
 				const out = moment.duration(last.diff(stamp)).humanize()
-				if(this.settings.includeCurrentTime) {
+				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+
+				if(this.settings.lastTimeStamp == null || this.settings.lastTimeStamp == '' || this.settings.lastTimeStamp == moment(now).format('YYYYMMDDHHmmss')) {
+					editor.replaceSelection(stamp.format('hh:mm A'));
+				}
+				else if(this.settings.includeCurrentTime) {
 					editor.replaceSelection(stamp.format('hh:mm A') + ' (' + out + ')');
 				} else {
 					editor.replaceSelection(out);
 				}
+
+				if(this.settings.savePageTime) {
+					if(view) {
+						app.fileManager.processFrontMatter(view.file, (frontmatter) => {
+							frontmatter['lasttime'] = moment(now).format('YYYYMMDDHHmmss');
+						});
+						this.settings.lastTimeStamp = moment(now).format('YYYYMMDDHHmmss');
+						this.saveSettings();
+					}
+				}
 			},
+		});
+
+		// Command to save the time selected
+		this.addCommand({
+			id: 'save-timestamp',
+			name: 'Save timestamp',
+			editorCallback: (editor) => {
+				const selected = editor.getSelection();
+				const stamp = moment(selected, 'hh:mm A').format('YYYYMMDDHHmmss');
+				this.settings.lastTimeStamp = stamp;
+				this.saveSettings();
+			}
+		});
+
+		// Command to execute on loading a new page
+		this.registerEvent(this.app.workspace.on('file-open', (file) => {
+			const meta = this.app.metadataCache.getFileCache(file);
+			if(meta.frontmatter && meta.frontmatter['lasttime']) {
+				this.settings.lastTimeStamp = meta.frontmatter['lasttime'];
+			} else {
+				this.settings.lastTimeStamp = '';
+			}
+
+		}));
+
+		this.addSettingTab(new RelTimeSettingTab(this.app, this));
+
+		this.app.metadataCache.on('changed', (file) => {
+			const meta = this.app.metadataCache.getFileCache(file);
+			if(meta.frontmatter && meta.frontmatter['lasttime'] !== undefined) {
+				this.settings.lastTimeStamp = meta.frontmatter['lasttime'];
+			} else {
+				this.settings.lastTimeStamp = '';
+			}
 		});
 	}
 
-	onunload() {
+	onunload() {}
 
-	}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -57,6 +107,7 @@ export default class RelativeTimestampsPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
 }
 
 class RelTimeSettingTab extends PluginSettingTab {
@@ -72,13 +123,23 @@ class RelTimeSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		// new Setting(containerEl)
+		// 	.setName('Last used timestamp')
+		// 	.setDesc('Timestamp to be used for relative comparison')
+		// 	.addText(text => text
+		// 		.setValue(this.plugin.settings.lastTimeStamp)
+		// 		.onChange(async (value) => {
+		// 			this.plugin.settings.lastTimeStamp = value;
+		// 			await this.plugin.saveSettings();
+		// 		}));
+
 		new Setting(containerEl)
-			.setName('Last used timestamp')
-			.setDesc('Timestamp to be used for relative comparison')
-			.addText(text => text
-				.setValue(this.plugin.settings.lastTimeStamp)
+			.setName('Save timestamps by page')
+			.setDesc('Save the last used timestamp on the frontmatter of the page')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.savePageTime)
 				.onChange(async (value) => {
-					this.plugin.settings.lastTimeStamp = value;
+					this.plugin.settings.savePageTime = value;
 					await this.plugin.saveSettings();
 				}));
 	}
