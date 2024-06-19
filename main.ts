@@ -34,12 +34,20 @@ export default class RelativeTimestampsPlugin extends Plugin {
 		this.addCommand({
 			id: 'insert-relative-timestamp',
 			name: 'Insert relative time',
-			editorCallback: (editor) => {
+			editorCallback: async (editor) => {
 				const now = new Date();
 				const last = moment(this.settings.lastTimeStamp,'YYYYMMDDHHmmss')
 				const stamp = moment(now);
 				const out = moment.duration(last.diff(stamp)).humanize()
 				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+
+				if(this.settings.savePageTime) {
+					if(view) {
+						await this.app.fileManager.processFrontMatter(view.file, (frontmatter) => {
+							frontmatter['lasttime'] = moment(now).format('YYYYMMDDHHmmss');
+						});
+					}
+				}
 
 				if(this.settings.lastTimeStamp == null || this.settings.lastTimeStamp == '' || this.settings.lastTimeStamp == moment(now).format('YYYYMMDDHHmmss')) {
 					editor.replaceSelection(stamp.format('hh:mm A'));
@@ -49,16 +57,8 @@ export default class RelativeTimestampsPlugin extends Plugin {
 				} else {
 					editor.replaceSelection(out);
 				}
-
-				if(this.settings.savePageTime) {
-					if(view) {
-						app.fileManager.processFrontMatter(view.file, (frontmatter) => {
-							frontmatter['lasttime'] = moment(now).format('YYYYMMDDHHmmss');
-						});
-						this.settings.lastTimeStamp = moment(now).format('YYYYMMDDHHmmss');
-						this.saveSettings();
-					}
-				}
+				this.settings.lastTimeStamp = moment(now).format('YYYYMMDDHHmmss');
+				this.saveSettings();
 			},
 		});
 
