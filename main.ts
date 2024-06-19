@@ -42,7 +42,7 @@ export default class RelativeTimestampsPlugin extends Plugin {
 				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
 				if(this.settings.savePageTime) {
-					if(view) {
+					if(view && view.file) {
 						await this.app.fileManager.processFrontMatter(view.file, (frontmatter) => {
 							frontmatter['lasttime'] = moment(now).format('YYYYMMDDHHmmss');
 						});
@@ -76,7 +76,9 @@ export default class RelativeTimestampsPlugin extends Plugin {
 
 		// Command to execute on loading a new page
 		this.registerEvent(this.app.workspace.on('file-open', (file) => {
-			const meta = this.app.metadataCache.getFileCache(file);
+			if (file) {
+				const meta = this.app.metadataCache.getFileCache(file);
+			}
 			if(meta.frontmatter && meta.frontmatter['lasttime']) {
 				this.settings.lastTimeStamp = meta.frontmatter['lasttime'];
 			} else {
@@ -89,6 +91,9 @@ export default class RelativeTimestampsPlugin extends Plugin {
 
 		this.app.metadataCache.on('changed', (file) => {
 			const meta = this.app.metadataCache.getFileCache(file);
+			if (meta == undefined) {
+				return;
+			}
 			if(meta.frontmatter && meta.frontmatter['lasttime'] !== undefined) {
 				this.settings.lastTimeStamp = meta.frontmatter['lasttime'];
 			} else {
