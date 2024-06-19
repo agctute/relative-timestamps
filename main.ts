@@ -78,11 +78,14 @@ export default class RelativeTimestampsPlugin extends Plugin {
 		this.registerEvent(this.app.workspace.on('file-open', (file) => {
 			if (file) {
 				const meta = this.app.metadataCache.getFileCache(file);
-			}
-			if(meta.frontmatter && meta.frontmatter['lasttime']) {
-				this.settings.lastTimeStamp = meta.frontmatter['lasttime'];
-			} else {
-				this.settings.lastTimeStamp = '';
+				if (meta == undefined) {
+					return;
+				}
+				if(meta.frontmatter && meta.frontmatter['lasttime']) {
+					this.settings.lastTimeStamp = meta.frontmatter['lasttime'];
+				} else {
+					this.settings.lastTimeStamp = '';
+				}
 			}
 
 		}));
