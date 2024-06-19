@@ -3,12 +3,14 @@ import {App, Editor, MarkdownView, moment, Notice, Plugin, PluginSettingTab, Set
 
 interface RtPluginSettings {
 	lastTimeStamp: string;
+	timeStampFormat: string;
 	includeCurrentTime: boolean;
 	savePageTime: boolean;
 }
 
 const DEFAULT_SETTINGS: RtPluginSettings = {
 	lastTimeStamp: '2024-05-31-12-00-00',
+	timeStampFormat: 'hh:mm A',	
 	includeCurrentTime: true,
 	savePageTime: true
 }
@@ -50,10 +52,10 @@ export default class RelativeTimestampsPlugin extends Plugin {
 				}
 
 				if(this.settings.lastTimeStamp == null || this.settings.lastTimeStamp == '' || this.settings.lastTimeStamp == moment(now).format('YYYYMMDDHHmmss')) {
-					editor.replaceSelection(stamp.format('hh:mm A'));
+					editor.replaceSelection(stamp.format(this.settings.timeStampFormat));
 				}
 				else if(this.settings.includeCurrentTime) {
-					editor.replaceSelection(stamp.format('hh:mm A') + ' (' + out + ')');
+					editor.replaceSelection(stamp.format(this.settings.timeStampFormat) + ' (' + out + ')');
 				} else {
 					editor.replaceSelection(out);
 				}
@@ -68,7 +70,7 @@ export default class RelativeTimestampsPlugin extends Plugin {
 			name: 'Save timestamp',
 			editorCallback: (editor) => {
 				const selected = editor.getSelection();
-				const stamp = moment(selected, 'hh:mm A').format('YYYYMMDDHHmmss');
+				const stamp = moment(selected, this.settings.timeStampFormat).format('YYYYMMDDHHmmss');
 				this.settings.lastTimeStamp = stamp;
 				this.saveSettings();
 			}
@@ -148,6 +150,16 @@ class RelTimeSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.savePageTime)
 				.onChange(async (value) => {
 					this.plugin.settings.savePageTime = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Timestamp format')
+			.setDesc('Format of the timestamp to be used')
+			.addText(toggle => toggle
+				.setValue(this.plugin.settings.timeStampFormat)
+				.onChange(async (value) => {
+					this.plugin.settings.timeStampFormat = value;
 					await this.plugin.saveSettings();
 				}));
 	}
