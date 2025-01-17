@@ -9,4 +9,4 @@ Originally made for use in food logs, diaries, and other notes where it may be d
 - Set the timestamp to be used as the last point of reference (you can set the time to the current time with the 'Reset timestamp' command)
 - Insert the current time along with the time that has passed
 - The plugin is very rigid in it's current state, and any setting additions to format are welcome. 
-
+- Automatically generate duration indicators for each task in the log file as non-editable shadow text at the end of each line.

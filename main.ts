@@ -118,6 +118,19 @@ export default class RelativeTimestampsPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
+	calculateDuration(start: moment.Moment, end: moment.Moment): string {
+		const duration = moment.duration(end.diff(start));
+		const minutes = duration.asMinutes();
+		return `${minutes} minutes`;
+	}
+
+	displayDuration(editor: Editor, duration: string) {
+		const shadowText = document.createElement('span');
+		shadowText.style.color = 'rgba(0, 0, 0, 0.5)';
+		shadowText.style.pointerEvents = 'none';
+		shadowText.textContent = ` [${duration}]`;
+		editor.replaceSelection(shadowText.outerHTML);
+	}
 }
 
 class RelTimeSettingTab extends PluginSettingTab {
